@@ -87,7 +87,7 @@ def run_gui() -> None:
         str(_asset_path("index.html")),
         js_api=api,
         width=560,
-        height=680,
+        height=480,
         resizable=False,
     )
     api.window = window
