@@ -1,0 +1,116 @@
+# QGIS LTR Updater
+
+Outil Windows en ligne de commande qui :
+
+1. vérifie sur le dépôt officiel de QGIS (OSGeo4W) s'il existe une nouvelle
+   version **LTR** (Long Term Release) ;
+2. si c'est le cas, l'installe **silencieusement**, avec des paramètres
+   prédéfinis (pas de question posée pendant l'installation) ;
+3. **garde toujours la version précédente (n-1)** installée à côté de la
+   nouvelle (n) — jamais d'écrasement, jamais de désinstallation
+   automatique.
+
+## Comment ça marche
+
+- Chaque version LTR installée par l'outil vit dans son propre dossier :
+  `C:\Program Files\OSGeo4W-QGIS-LTR-<version>\`. Installer la version n
+  ne touche donc jamais au dossier de la version n-1.
+- L'outil garde un petit fichier d'état
+  (`C:\ProgramData\QGISLTRUpdater\state.json`) qui retient quelles versions
+  ont été installées, où, et quand.
+- Au-delà de 2 versions installées (n et n-1), l'outil ne supprime **jamais**
+  automatiquement une ancienne version : il se contente d'afficher son
+  emplacement pour que quelqu'un décide de la retirer manuellement si besoin.
+
+## Utilisation (équipe)
+
+1. Récupérer `QGIS-LTR-Updater.exe` (voir email de l'équipe / lien de
+   diffusion interne).
+2. Double-cliquer dessus, ou depuis une invite de commandes :
+   ```
+   QGIS-LTR-Updater.exe
+   ```
+3. L'outil affiche la version actuellement installée et la dernière version
+   LTR publiée. S'il y en a une nouvelle, il demande confirmation avant
+   d'installer.
+4. Une fenêtre d'élévation Windows (UAC) apparaît : c'est normal, une
+   installation logicielle nécessite les droits administrateur.
+
+### Options en ligne de commande
+
+| Option | Effet |
+|---|---|
+| `--check-only` | Vérifie s'il y a une nouvelle version, sans rien installer. |
+| `-y`, `--yes` | Installe sans demander de confirmation (utile pour un déploiement scripté). |
+| `--list` | Liste les versions LTR déjà installées par l'outil sur ce poste. |
+
+## Paramètres prédéfinis
+
+Tous les choix d'installation (paquet OSGeo4W installé, mirrors, emplacement,
+raccourcis, nombre de versions à garder) sont centralisés dans
+[`qgis_ltr_updater/config.py`](qgis_ltr_updater/config.py). C'est le seul
+fichier à modifier si l'équipe veut changer un réglage pour tout le monde
+(par ex. passer de `qgis-ltr-full` à `qgis-ltr` pour une installation plus
+légère, sans GRASS/SAGA).
+
+## Construire l'exécutable (mainteneur)
+
+Sur une machine Windows avec Python 3.11+ :
+
+```powershell
+.\build_exe.ps1
+```
+
+Le binaire est généré dans `dist\QGIS-LTR-Updater.exe`.
+
+> ⚠️ Un exécutable PyInstaller non signé peut déclencher un avertissement
+> Windows SmartScreen ("Windows a protégé votre PC") lors du tout premier
+> lancement sur chaque poste. Si votre organisation a un certificat de
+> signature de code, signez le binaire (`signtool sign ...`) avant de le
+> diffuser pour éviter cet avertissement. Sinon, prévenez l'équipe dans
+> l'email (modèle ci-dessous) qu'il faut cliquer sur "Informations
+> complémentaires" puis "Exécuter quand même".
+
+## Tests
+
+```bash
+pip install -r requirements-dev.txt
+pytest
+```
+
+Les tests couvrent le parsing de version et la logique de rétention
+(entièrement multiplateforme). L'exécution réelle de l'installeur OSGeo4W
+ne peut être testée que sur un poste Windows.
+
+## Modèle d'e-mail pour l'équipe
+
+> Objet : Nouvel outil pour installer les mises à jour LTR de QGIS
+>
+> Bonjour à toutes et tous,
+>
+> Pour simplifier et fiabiliser les mises à jour de QGIS, merci d'utiliser
+> désormais l'outil `QGIS-LTR-Updater.exe` (ci-joint / lien : ...) plutôt que
+> de télécharger l'installeur manuellement.
+>
+> Il vérifie automatiquement s'il existe une nouvelle version LTR de QGIS,
+> l'installe avec des paramètres déjà validés par l'équipe, et **garde
+> automatiquement l'ancienne version installée** en parallèle — vous pourrez
+> donc revenir dessus si besoin.
+>
+> Pour l'utiliser : double-cliquez sur `QGIS-LTR-Updater.exe`, acceptez la
+> demande d'élévation Windows, puis confirmez l'installation si une nouvelle
+> version est proposée. Un avertissement Windows SmartScreen peut apparaître
+> au premier lancement : cliquez sur "Informations complémentaires" puis
+> "Exécuter quand même".
+>
+> N'hésitez pas à revenir vers moi en cas de souci.
+
+## Limites connues
+
+- Windows uniquement (repose sur l'installeur réseau OSGeo4W et son option
+  `--root` par version).
+- L'outil ne désinstalle jamais une ancienne version tout seul : au-delà de
+  2 versions, il faut les retirer manuellement (Panneau de configuration,
+  ou suppression du dossier `OSGeo4W-QGIS-LTR-<version>` correspondant).
+- Nécessite un accès réseau sortant vers `download.osgeo.org` (ou un des
+  mirrors listés dans `config.py`).
