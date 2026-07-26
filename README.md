@@ -1,16 +1,32 @@
 # QGIS LTR Updater
 
-Outil Windows en ligne de commande qui :
+Application Windows (fenêtre native, double-clic pour lancer) qui :
 
 1. vérifie sur le dépôt officiel de QGIS (OSGeo4W) s'il existe une nouvelle
    version **LTR** (Long Term Release) ;
 2. si c'est le cas, l'installe **silencieusement**, avec des paramètres
-   prédéfinis (pas de question posée pendant l'installation) ;
+   prédéfinis (pas de question posée pendant l'installation elle-même) ;
 3. **garde toujours exactement 2 versions installées : n et n-1.** Quand n
    est installée avec succès, l'outil désinstalle automatiquement ce qui est
    plus ancien que n-1 (n-2, n-3, ...) — jamais d'écrasement pendant
    l'installation, et pas d'accumulation de vieilles versions sur les postes
    au fil du temps.
+
+## Interface
+
+Une seule fenêtre, pensée pour être comprise en un coup d'œil :
+
+- un état en pastille (**À jour** / **Mise à jour disponible** /
+  **Installation en cours…** / **Erreur**) ;
+- la version installée et la dernière version LTR publiée, côte à côte ;
+- un bouton **Installer** qui fait tout (téléchargement, installation
+  silencieuse, retrait de la version trop ancienne) ;
+- un journal qui ne s'ouvre que pendant une installation, pour voir ce qui
+  se passe sans avoir à lire un terminal.
+
+L'interface respecte le thème clair/sombre de Windows et les animations
+sont désactivées automatiquement si "Réduire les animations" est activé au
+niveau du système.
 
 ## Comment ça marche
 
@@ -27,29 +43,35 @@ Outil Windows en ligne de commande qui :
   cette suppression ne peut jamais affecter une autre version ni une
   installation QGIS qui n'aurait pas été faite par cet outil.
 - Ce comportement peut être désactivé (rétention en mode "signalement
-  seulement", comme avant) via `AUTO_REMOVE_OLDER_VERSIONS = False` dans
-  `config.py`.
+  seulement") via `AUTO_REMOVE_OLDER_VERSIONS = False` dans `config.py`.
 
 ## Utilisation (équipe)
 
 1. Récupérer `QGIS-LTR-Updater.exe` (voir email de l'équipe / lien de
    diffusion interne).
-2. Double-cliquer dessus, ou depuis une invite de commandes :
-   ```
-   QGIS-LTR-Updater.exe
-   ```
-3. L'outil affiche la version actuellement installée et la dernière version
-   LTR publiée. S'il y en a une nouvelle, il demande confirmation avant
-   d'installer.
-4. Une fenêtre d'élévation Windows (UAC) apparaît : c'est normal, une
-   installation logicielle nécessite les droits administrateur.
+2. Double-cliquer dessus : une fenêtre s'ouvre et vérifie tout de suite s'il
+   existe une nouvelle version LTR.
+3. Si oui, cliquer sur **Installer**. Une fenêtre d'élévation Windows (UAC)
+   apparaît : c'est normal, une installation logicielle nécessite les droits
+   administrateur.
+4. Le journal affiche la progression ; à la fin, la fenêtre indique
+   **Installé** et la version précédente trop ancienne (s'il y en avait une)
+   a été retirée automatiquement.
 
-### Options en ligne de commande
+### Mode ligne de commande (déploiement scripté)
+
+Le même exécutable peut aussi tourner sans interface, pour une installation
+entièrement automatisée (ex. via un script de déploiement du parc) :
+
+```
+QGIS-LTR-Updater.exe --cli --yes
+```
 
 | Option | Effet |
 |---|---|
+| `--cli` | Bascule en mode terminal (sans cette option, l'interface graphique s'ouvre). |
 | `--check-only` | Vérifie s'il y a une nouvelle version, sans rien installer. |
-| `-y`, `--yes` | Installe sans demander de confirmation (utile pour un déploiement scripté). |
+| `-y`, `--yes` | Installe sans demander de confirmation. |
 | `--list` | Liste les versions LTR déjà installées par l'outil sur ce poste. |
 
 ## Paramètres prédéfinis
@@ -69,7 +91,9 @@ Sur une machine Windows avec Python 3.11+ :
 .\build_exe.ps1
 ```
 
-Le binaire est généré dans `dist\QGIS-LTR-Updater.exe`.
+Le binaire est généré dans `dist\QGIS-LTR-Updater.exe` (mode `--windowed` :
+double-clic = interface graphique, sans fenêtre de console qui traîne
+derrière).
 
 > ⚠️ Un exécutable PyInstaller non signé peut déclencher un avertissement
 > Windows SmartScreen ("Windows a protégé votre PC") lors du tout premier
@@ -78,6 +102,13 @@ Le binaire est généré dans `dist\QGIS-LTR-Updater.exe`.
 > diffuser pour éviter cet avertissement. Sinon, prévenez l'équipe dans
 > l'email (modèle ci-dessous) qu'il faut cliquer sur "Informations
 > complémentaires" puis "Exécuter quand même".
+>
+> L'interface graphique s'appuie sur le moteur **WebView2** de Microsoft,
+> préinstallé sur Windows 11 et sur les Windows 10 à jour. Sur un Windows 10
+> ancien qui ne l'aurait pas, pywebview affiche lui-même un message
+> indiquant qu'il faut installer le
+> [WebView2 Runtime](https://developer.microsoft.com/microsoft-edge/webview2/)
+> (installateur officiel Microsoft, quelques Mo).
 
 ## Tests
 
@@ -86,9 +117,10 @@ pip install -r requirements-dev.txt
 pytest
 ```
 
-Les tests couvrent le parsing de version et la logique de rétention
-(entièrement multiplateforme). L'exécution réelle de l'installeur OSGeo4W
-ne peut être testée que sur un poste Windows.
+Les tests couvrent le parsing de version, la logique de rétention et le
+plan d'installation (entièrement multiplateforme, sans dépendance à
+pywebview). L'exécution réelle de l'installeur OSGeo4W et de l'interface
+graphique ne peuvent être testées que sur un poste Windows.
 
 ## Modèle d'e-mail pour l'équipe
 
@@ -100,24 +132,24 @@ ne peut être testée que sur un poste Windows.
 > désormais l'outil `QGIS-LTR-Updater.exe` (ci-joint / lien : ...) plutôt que
 > de télécharger l'installeur manuellement.
 >
-> Il vérifie automatiquement s'il existe une nouvelle version LTR de QGIS,
-> l'installe avec des paramètres déjà validés par l'équipe, et **garde
-> toujours la version précédente installée** en parallèle — vous pourrez
-> donc y revenir en cas de souci. Les versions plus anciennes que celle-ci
-> sont retirées automatiquement pour ne pas s'accumuler sur le poste.
+> Double-cliquez dessus : une fenêtre s'ouvre, vous indique si une nouvelle
+> version LTR est disponible, et propose de l'installer d'un clic. Les
+> paramètres d'installation sont déjà validés par l'équipe — il n'y a rien
+> à choisir. La version précédente reste disponible en parallèle, et les
+> versions plus anciennes sont retirées automatiquement pour ne pas
+> s'accumuler sur le poste.
 >
-> Pour l'utiliser : double-cliquez sur `QGIS-LTR-Updater.exe`, acceptez la
-> demande d'élévation Windows, puis confirmez l'installation si une nouvelle
-> version est proposée. Un avertissement Windows SmartScreen peut apparaître
-> au premier lancement : cliquez sur "Informations complémentaires" puis
-> "Exécuter quand même".
+> Une demande d'élévation Windows apparaîtra pendant l'installation : c'est
+> normal. Un avertissement SmartScreen peut aussi apparaître au tout premier
+> lancement : cliquez sur "Informations complémentaires" puis "Exécuter
+> quand même".
 >
 > N'hésitez pas à revenir vers moi en cas de souci.
 
 ## Limites connues
 
 - Windows uniquement (repose sur l'installeur réseau OSGeo4W et son option
-  `--root` par version).
+  `--root` par version, ainsi que sur WebView2 pour l'interface).
 - La désinstallation automatique des versions trop anciennes (n-2 et plus)
   supprime directement le dossier d'installation et son groupe de raccourcis
   — OSGeo4W n'expose pas d'entrée fiable dans "Ajouter/Supprimer des
