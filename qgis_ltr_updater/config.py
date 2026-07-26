@@ -60,6 +60,15 @@ LOCAL_PACKAGE_DIR = PROGRAM_DATA / "QGISLTRUpdater" / "osgeo4w-packages"
 STATE_DIR = PROGRAM_DATA / "QGISLTRUpdater"
 STATE_FILE = STATE_DIR / "state.json"
 
+# Emplacements possibles des groupes de raccourcis Menu Démarrer créés par
+# osgeo4w-setup.exe (--menu-name) : installation machine (tous les
+# utilisateurs) et, par sécurité, celle de l'utilisateur courant.
+START_MENU_CANDIDATES = [
+    PROGRAM_DATA / "Microsoft" / "Windows" / "Start Menu" / "Programs",
+    Path(os.environ.get("APPDATA", r"C:\Users\Default\AppData\Roaming"))
+    / "Microsoft" / "Windows" / "Start Menu" / "Programs",
+]
+
 # --- Paramètres d'installation (silencieuse, prédéfinis) --------------------
 
 CREATE_DESKTOP_SHORTCUT = False  # uniquement un groupe Menu Démarrer par version
@@ -68,8 +77,14 @@ AUTOACCEPT_LICENSES = True
 
 # --- Rétention ---------------------------------------------------------------
 
-# Nombre de versions à garder installées (2 = n et n-1). L'outil ne
-# supprime JAMAIS automatiquement une ancienne version : au-delà de ce
-# nombre, il se contente de signaler les arborescences les plus anciennes
-# pour qu'un humain décide de les retirer ou non.
+# Nombre de versions à garder installées (2 = n et n-1).
 KEEP_VERSIONS = 2
+
+# Si True (par défaut) : quand l'installation de la version n réussit et
+# qu'il reste plus de KEEP_VERSIONS versions connues, l'outil désinstalle
+# lui-même la ou les versions les plus anciennes (n-2, n-3, ...) pour ne
+# garder que n et n-1 — c'est ce dossier + ce groupe de menu qui sont
+# supprimés, jamais rien d'autre, puisque chaque version a sa propre
+# arborescence isolée.
+# Passer à False pour revenir à un simple signalement, à retirer à la main.
+AUTO_REMOVE_OLDER_VERSIONS = True

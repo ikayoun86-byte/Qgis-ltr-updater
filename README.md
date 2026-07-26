@@ -6,21 +6,29 @@ Outil Windows en ligne de commande qui :
    version **LTR** (Long Term Release) ;
 2. si c'est le cas, l'installe **silencieusement**, avec des paramètres
    prédéfinis (pas de question posée pendant l'installation) ;
-3. **garde toujours la version précédente (n-1)** installée à côté de la
-   nouvelle (n) — jamais d'écrasement, jamais de désinstallation
-   automatique.
+3. **garde toujours exactement 2 versions installées : n et n-1.** Quand n
+   est installée avec succès, l'outil désinstalle automatiquement ce qui est
+   plus ancien que n-1 (n-2, n-3, ...) — jamais d'écrasement pendant
+   l'installation, et pas d'accumulation de vieilles versions sur les postes
+   au fil du temps.
 
 ## Comment ça marche
 
 - Chaque version LTR installée par l'outil vit dans son propre dossier :
   `C:\Program Files\OSGeo4W-QGIS-LTR-<version>\`. Installer la version n
-  ne touche donc jamais au dossier de la version n-1.
+  ne touche donc jamais au dossier de la version n-1 pendant l'installation.
 - L'outil garde un petit fichier d'état
   (`C:\ProgramData\QGISLTRUpdater\state.json`) qui retient quelles versions
   ont été installées, où, et quand.
-- Au-delà de 2 versions installées (n et n-1), l'outil ne supprime **jamais**
-  automatiquement une ancienne version : il se contente d'afficher son
-  emplacement pour que quelqu'un décide de la retirer manuellement si besoin.
+- Une fois n installée et vérifiée, s'il reste plus de 2 versions connues,
+  l'outil désinstalle lui-même les plus anciennes : suppression de leur
+  dossier `OSGeo4W-QGIS-LTR-<version>` et de leur groupe de raccourcis Menu
+  Démarrer dédié. Comme chaque version a sa propre arborescence isolée,
+  cette suppression ne peut jamais affecter une autre version ni une
+  installation QGIS qui n'aurait pas été faite par cet outil.
+- Ce comportement peut être désactivé (rétention en mode "signalement
+  seulement", comme avant) via `AUTO_REMOVE_OLDER_VERSIONS = False` dans
+  `config.py`.
 
 ## Utilisation (équipe)
 
@@ -94,8 +102,9 @@ ne peut être testée que sur un poste Windows.
 >
 > Il vérifie automatiquement s'il existe une nouvelle version LTR de QGIS,
 > l'installe avec des paramètres déjà validés par l'équipe, et **garde
-> automatiquement l'ancienne version installée** en parallèle — vous pourrez
-> donc revenir dessus si besoin.
+> toujours la version précédente installée** en parallèle — vous pourrez
+> donc y revenir en cas de souci. Les versions plus anciennes que celle-ci
+> sont retirées automatiquement pour ne pas s'accumuler sur le poste.
 >
 > Pour l'utiliser : double-cliquez sur `QGIS-LTR-Updater.exe`, acceptez la
 > demande d'élévation Windows, puis confirmez l'installation si une nouvelle
@@ -109,8 +118,10 @@ ne peut être testée que sur un poste Windows.
 
 - Windows uniquement (repose sur l'installeur réseau OSGeo4W et son option
   `--root` par version).
-- L'outil ne désinstalle jamais une ancienne version tout seul : au-delà de
-  2 versions, il faut les retirer manuellement (Panneau de configuration,
-  ou suppression du dossier `OSGeo4W-QGIS-LTR-<version>` correspondant).
+- La désinstallation automatique des versions trop anciennes (n-2 et plus)
+  supprime directement le dossier d'installation et son groupe de raccourcis
+  — OSGeo4W n'expose pas d'entrée fiable dans "Ajouter/Supprimer des
+  programmes" par racine, c'est la méthode documentée pour ce type
+  d'installation isolée par version.
 - Nécessite un accès réseau sortant vers `download.osgeo.org` (ou un des
   mirrors listés dans `config.py`).

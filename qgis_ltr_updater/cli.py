@@ -17,7 +17,13 @@ from .installed import (
     save_state,
     scan_filesystem,
 )
-from .installer import InstallError, download_file, run_install, verify_install
+from .installer import (
+    InstallError,
+    download_file,
+    run_install,
+    uninstall_version,
+    verify_install,
+)
 from .version_check import VersionCheckError, get_latest_ltr_version
 
 
@@ -93,9 +99,19 @@ def main(argv=None) -> int:
         print("Une nouvelle version est disponible (--check-only : aucune installation effectuée).")
         return 0
 
+    # Une fois `latest` installée, il y aura len(records) + 1 versions connues.
+    # Tout ce qui dépasse KEEP_VERSIONS (n et n-1) est trop ancien (n-2, n-3, ...).
+    excess_count = max(0, len(records) + 1 - config.KEEP_VERSIONS)
+    a_retirer = records[:excess_count]
+
+    retrait_msg = ""
+    if a_retirer and config.AUTO_REMOVE_OLDER_VERSIONS:
+        noms = ", ".join(r.version for r in a_retirer)
+        retrait_msg = f" (la/les version(s) {noms} seront désinstallée(s) pour ne garder que {config.KEEP_VERSIONS} version(s))"
+
     if not args.yes:
         reponse = input(
-            f"Installer la version {latest} maintenant, en conservant {current or '(aucune version actuelle)'} ? [o/N] "
+            f"Installer la version {latest} maintenant, en conservant {current or '(aucune version actuelle)'}{retrait_msg} ? [o/N] "
         )
         if reponse.strip().lower() not in ("o", "oui", "y", "yes"):
             print("Installation annulée.")
@@ -145,25 +161,31 @@ def main(argv=None) -> int:
         )
         return 1
 
-    records.append(
-        InstallRecord(
-            version=latest,
-            root=str(root_dir),
-            installed_at=datetime.now(timezone.utc).isoformat(),
-        )
+    nouvelle_entree = InstallRecord(
+        version=latest,
+        root=str(root_dir),
+        installed_at=datetime.now(timezone.utc).isoformat(),
     )
-    save_state(records)
-
     print(f"QGIS LTR {latest} installé avec succès dans {root_dir}.")
 
-    if len(records) > config.KEEP_VERSIONS:
-        a_retirer = records[: len(records) - config.KEEP_VERSIONS]
-        print(
-            f"Rétention : {config.KEEP_VERSIONS} version(s) suffisent normalement (n et n-1). "
-            "Vous pouvez retirer manuellement, si vous n'en avez plus besoin :"
-        )
+    if a_retirer and config.AUTO_REMOVE_OLDER_VERSIONS:
+        print(f"Rétention : on ne garde que {config.KEEP_VERSIONS} version(s) (n et n-1).")
         for record in a_retirer:
-            print(f"  - {record.version}  ({record.root})")
+            print(f"Désinstallation de {record.version} ({record.root})...")
+            uninstall_version(Path(record.root), record.version)
+        restantes = [r for r in records if r not in a_retirer]
+        restantes.append(nouvelle_entree)
+        save_state(restantes)
+    else:
+        records.append(nouvelle_entree)
+        save_state(records)
+        if a_retirer:
+            print(
+                f"Rétention : {config.KEEP_VERSIONS} version(s) suffisent normalement (n et n-1). "
+                "Vous pouvez retirer manuellement, si vous n'en avez plus besoin :"
+            )
+            for record in a_retirer:
+                print(f"  - {record.version}  ({record.root})")
 
     return 0
 

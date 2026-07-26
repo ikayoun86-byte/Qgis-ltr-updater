@@ -9,6 +9,7 @@ autonomes où une mise à niveau silencieuse fait apparaître une boîte de
 dialogue de confirmation qui bloque le script.
 """
 
+import shutil
 import subprocess
 from pathlib import Path
 
@@ -71,3 +72,29 @@ def run_install(setup_exe: Path, root_dir: Path, version_label: str) -> subproce
 def verify_install(root_dir: Path) -> bool:
     """Vérifie sommairement que l'installation a bien produit un QGIS utilisable."""
     return (root_dir / "bin" / "qgis-ltr-bin.exe").exists()
+
+
+def _remove_start_menu_shortcuts(menu_name: str, start_menu_dirs=None) -> None:
+    start_menu_dirs = (
+        start_menu_dirs if start_menu_dirs is not None else config.START_MENU_CANDIDATES
+    )
+    for base in start_menu_dirs:
+        group_dir = base / menu_name
+        if group_dir.exists():
+            shutil.rmtree(group_dir, ignore_errors=True)
+
+
+def uninstall_version(root_dir: Path, version_label: str, start_menu_dirs=None) -> None:
+    """Retire une version LTR installée par l'outil (dossier + raccourcis).
+
+    OSGeo4W n'enregistre pas d'entrée fiable dans "Ajout/Suppression de
+    programmes" par racine : la méthode documentée pour désinstaller consiste
+    à supprimer l'arborescence d'installation et les raccourcis du Menu
+    Démarrer associés. C'est sans risque ici car chaque version a sa PROPRE
+    arborescence et son PROPRE groupe de menu (``--root``/``--menu-name``
+    distincts à l'installation) : rien d'autre ne peut être affecté par cette
+    suppression.
+    """
+    _remove_start_menu_shortcuts(f"QGIS LTR {version_label}", start_menu_dirs)
+    if root_dir.exists():
+        shutil.rmtree(root_dir, ignore_errors=True)
