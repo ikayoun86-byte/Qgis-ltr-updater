@@ -19,13 +19,20 @@ def is_admin() -> bool:
         return False
 
 
-def relaunch_as_admin() -> bool:
-    """Relance le script courant avec élévation. Retourne True si la demande a été émise."""
+def relaunch_as_admin(extra_args=None) -> bool:
+    """Relance le script courant avec élévation. Retourne True si la demande a été émise.
+
+    `extra_args` est ajouté aux arguments déjà présents (ex. `--auto-install`,
+    pour que la nouvelle instance élevée reprenne directement l'installation
+    au lieu de rouvrir une fenêtre vierge que l'utilisateur devrait relancer
+    lui-même).
+    """
     if sys.platform != "win32":
         return False
     import ctypes
 
-    params = " ".join(f'"{arg}"' for arg in sys.argv[1:])
+    args = list(sys.argv[1:]) + list(extra_args or [])
+    params = " ".join(f'"{arg}"' for arg in args)
     try:
         result = ctypes.windll.shell32.ShellExecuteW(
             None, "runas", sys.executable, params, None, 1

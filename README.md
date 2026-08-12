@@ -57,7 +57,9 @@ moteur de navigateur) à empaqueter ni à trouver sur le poste au démarrage.
    LTR.
 3. Si oui, cliquer sur **Installer**. Une fenêtre d'élévation Windows (UAC)
    apparaît : c'est normal, une installation logicielle nécessite les droits
-   administrateur.
+   administrateur. **La fenêtre se ferme puis se rouvre automatiquement** une
+   fois les droits obtenus, et l'installation reprend toute seule — pas
+   besoin de recliquer sur Installer.
 4. Le journal affiche la progression ; à la fin, la fenêtre indique
    **Installé** et la version précédente trop ancienne (s'il y en avait une)
    a été retirée automatiquement.
@@ -167,3 +169,8 @@ graphique ne peuvent être testées que sur un poste Windows.
   (exe lancé depuis l'intérieur du zip sans l'avoir extrait). Une exception
   au démarrage affiche désormais une boîte de dialogue Windows avec le
   détail plutôt que de disparaître en silence.
+- Si le téléchargement de l'installeur OSGeo4W échoue avec des erreurs 404
+  sur toutes les URLs (visible dans le journal), c'est que le nom de
+  fichier exact a de nouveau changé côté OSGeo4W : mettre à jour
+  `OSGEO4W_SETUP_EXE_URLS`/`_SETUP_EXE_PATHS` dans `config.py` avec l'URL
+  actuelle (visible en cherchant "osgeo4w-setup.exe" sur le site OSGeo4W).

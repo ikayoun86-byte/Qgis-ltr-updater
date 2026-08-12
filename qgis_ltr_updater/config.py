@@ -28,10 +28,21 @@ ARCH = "x86_64"
 
 # --- Téléchargement de l'installeur OSGeo4W ---------------------------------
 
+# `.../v2/x86_64/setup.exe` n'existe pas (confirmé par un 404 réel en usage) ;
+# on essaie plusieurs noms de fichier plausibles sur chaque mirror avant de
+# passer au suivant, en commençant par le mirror principal.
+_SETUP_EXE_HOSTS = [
+    "https://download.osgeo.org/osgeo4w",
+    "https://ftp.osuosl.org/pub/osgeo/download/osgeo4w",
+    "https://www.norbit.de/osgeo4w",
+]
+_SETUP_EXE_PATHS = [
+    "v2/x86_64/setup-x86_64.exe",
+    "v2/x86_64/osgeo4w-setup.exe",
+    "osgeo4w-setup.exe",
+]
 OSGEO4W_SETUP_EXE_URLS = [
-    "https://download.osgeo.org/osgeo4w/v2/x86_64/setup.exe",
-    "https://ftp.osuosl.org/pub/osgeo/download/osgeo4w/v2/x86_64/setup.exe",
-    "https://www.norbit.de/osgeo4w/v2/x86_64/setup.exe",
+    f"{host}/{path}" for host in _SETUP_EXE_HOSTS for path in _SETUP_EXE_PATHS
 ]
 
 # Sites passés à osgeo4w-setup.exe via --site (mirrors de paquets, pas de setup.ini).

@@ -11,7 +11,9 @@ de mettre à jour des widgets directement depuis un autre thread.
 """
 
 import queue
+import sys
 import threading
+import time
 import tkinter as tk
 from tkinter import font as tkfont
 
@@ -110,11 +112,12 @@ class Pill(tk.Canvas):
 
 
 class App:
-    def __init__(self, root):
+    def __init__(self, root, auto_install=False):
         self.root = root
         self.queue = queue.Queue()
         self.plan = None
         self.log_visible = False
+        self.auto_install = auto_install
 
         self.font_h1 = tkfont.Font(family="Segoe UI Semibold", size=13, weight="bold")
         self.font_eyebrow = tkfont.Font(family="Segoe UI", size=8, weight="bold")
@@ -282,6 +285,10 @@ class App:
                 self.note_label.pack(anchor="w", pady=(12, 0))
             else:
                 self.note_label.pack_forget()
+            if self.auto_install:
+                self.auto_install = False
+                self._append_log("Droits administrateur obtenus, reprise automatique de l'installation...")
+                self.root.after(300, self._on_install_click)
         else:
             self.pill.set_state(GOOD, GOOD_BG, "À jour")
             self.install_button.set_text("Installer")
@@ -308,10 +315,16 @@ class App:
         plan = self.plan
         if not is_admin():
             self._log(
-                "Des droits administrateur sont nécessaires pour installer QGIS. "
-                "Relance en cours avec élévation..."
+                "Des droits administrateur sont nécessaires pour installer QGIS."
             )
-            if relaunch_as_admin():
+            self._log(
+                "Une fenêtre Windows va demander confirmation, puis cette fenêtre "
+                "se fermera : une nouvelle s'ouvrira avec les droits administrateur "
+                "et reprendra l'installation automatiquement, sans qu'il faille "
+                "recliquer sur Installer."
+            )
+            if relaunch_as_admin(extra_args=["--auto-install"]):
+                time.sleep(1.5)  # laisse le temps de lire le message avant la fermeture
                 self.queue.put(("quit", None))
                 return
             self.queue.put((
@@ -343,9 +356,10 @@ class App:
 
 
 def run_gui() -> None:
+    auto_install = "--auto-install" in sys.argv[1:]
     root = tk.Tk()
     root.title("QGIS LTR Updater")
     root.geometry("560x480")
     root.resizable(False, False)
-    App(root)
+    App(root, auto_install=auto_install)
     root.mainloop()
