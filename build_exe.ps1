@@ -22,6 +22,9 @@ python -m venv .build-venv
     --windowed `
     --name QGIS-LTR-Updater `
     --add-data "qgis_ltr_updater/assets;assets" `
+    --exclude-module pythonnet `
+    --exclude-module clr_loader `
+    --exclude-module clr `
     main.py
 
 Compress-Archive -Path "dist\QGIS-LTR-Updater\*" -DestinationPath "dist\QGIS-LTR-Updater-windows.zip" -Force

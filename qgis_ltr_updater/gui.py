@@ -78,6 +78,9 @@ class Api:
         return {"ok": True, "version": record.version}
 
 
+WEBVIEW2_DOWNLOAD_URL = "https://developer.microsoft.com/microsoft-edge/webview2/"
+
+
 def run_gui() -> None:
     import webview  # importé ici : inutile (et non installable) hors Windows/CI
 
@@ -91,4 +94,19 @@ def run_gui() -> None:
         resizable=False,
     )
     api.window = window
-    webview.start()
+
+    try:
+        # Sans `gui=`, pywebview essaie plusieurs moteurs si le premier échoue
+        # et peut retomber sur un très vieux moteur (Internet Explorer via
+        # pythonnet), qui plante avec une erreur incompréhensible sans rapport
+        # avec la vraie cause. On force WebView2 explicitement pour obtenir,
+        # en cas d'échec, un message direct plutôt qu'une cascade confuse.
+        webview.start(gui="edgechromium")
+    except Exception as exc:
+        raise RuntimeError(
+            "Le composant Microsoft WebView2 est introuvable ou n'a pas pu "
+            "démarrer sur ce poste.\n\n"
+            f"Installez le \"WebView2 Runtime\" depuis :\n{WEBVIEW2_DOWNLOAD_URL}\n"
+            "puis relancez l'application.\n\n"
+            f"Détail technique : {exc}"
+        ) from exc

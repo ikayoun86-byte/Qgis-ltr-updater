@@ -114,12 +114,14 @@ directement depuis le disque, sans étape d'extraction.
 > l'email (modèle ci-dessous) qu'il faut cliquer sur "Informations
 > complémentaires" puis "Exécuter quand même".
 >
-> L'interface graphique s'appuie sur le moteur **WebView2** de Microsoft,
-> préinstallé sur Windows 11 et sur les Windows 10 à jour. Sur un Windows 10
-> ancien qui ne l'aurait pas, pywebview affiche lui-même un message
-> indiquant qu'il faut installer le
+> L'interface graphique s'appuie sur le moteur **WebView2** de Microsoft
+> (`webview.start(gui="edgechromium")`, forcé explicitement pour éviter que
+> pywebview ne retombe silencieusement sur un très vieux moteur qui plante
+> de façon incompréhensible). WebView2 est préinstallé sur Windows 11 et sur
+> les Windows 10 à jour. S'il manque, l'application affiche une boîte de
+> dialogue avec le lien du
 > [WebView2 Runtime](https://developer.microsoft.com/microsoft-edge/webview2/)
-> (installateur officiel Microsoft, quelques Mo).
+> (installateur officiel Microsoft, quelques Mo) au lieu de ne rien afficher.
 
 ## Tests
 
