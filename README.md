@@ -47,10 +47,14 @@ niveau du système.
 
 ## Utilisation (équipe)
 
-1. Récupérer `QGIS-LTR-Updater.exe` (voir email de l'équipe / lien de
-   diffusion interne).
-2. Double-cliquer dessus : une fenêtre s'ouvre et vérifie tout de suite s'il
-   existe une nouvelle version LTR.
+1. Récupérer `QGIS-LTR-Updater-windows.zip` (voir email de l'équipe / lien de
+   diffusion interne) et l'extraire entièrement dans un dossier (clic droit
+   -> Extraire tout). **Ne pas se contenter d'ouvrir le zip et double-cliquer
+   l'exe depuis l'intérieur** : il a besoin des fichiers à côté de lui pour
+   démarrer.
+2. Double-cliquer sur `QGIS-LTR-Updater.exe` (dans le dossier extrait) : une
+   fenêtre s'ouvre et vérifie tout de suite s'il existe une nouvelle version
+   LTR.
 3. Si oui, cliquer sur **Installer**. Une fenêtre d'élévation Windows (UAC)
    apparaît : c'est normal, une installation logicielle nécessite les droits
    administrateur.
@@ -66,6 +70,8 @@ entièrement automatisée (ex. via un script de déploiement du parc) :
 ```
 QGIS-LTR-Updater.exe --cli --yes
 ```
+
+(à exécuter depuis le dossier extrait, comme en usage normal.)
 
 | Option | Effet |
 |---|---|
@@ -91,9 +97,14 @@ Sur une machine Windows avec Python 3.11+ :
 .\build_exe.ps1
 ```
 
-Le binaire est généré dans `dist\QGIS-LTR-Updater.exe` (mode `--windowed` :
-double-clic = interface graphique, sans fenêtre de console qui traîne
-derrière).
+Le résultat est un **dossier** (`dist\QGIS-LTR-Updater\`, contenant
+`QGIS-LTR-Updater.exe` et ses fichiers), compressé automatiquement en
+`dist\QGIS-LTR-Updater-windows.zip` prêt à diffuser. C'est un choix
+délibéré : le mode `--onefile` de PyInstaller doit se ré-extraire dans un
+dossier temporaire à *chaque* lancement (démarrage lent, plus souvent
+signalé par l'antivirus) et a des soucis de fiabilité documentés avec
+WebView2 (DLL introuvable). Le mode `--onedir` utilisé ici démarre
+directement depuis le disque, sans étape d'extraction.
 
 > ⚠️ Un exécutable PyInstaller non signé peut déclencher un avertissement
 > Windows SmartScreen ("Windows a protégé votre PC") lors du tout premier
@@ -129,10 +140,12 @@ graphique ne peuvent être testées que sur un poste Windows.
 > Bonjour à toutes et tous,
 >
 > Pour simplifier et fiabiliser les mises à jour de QGIS, merci d'utiliser
-> désormais l'outil `QGIS-LTR-Updater.exe` (ci-joint / lien : ...) plutôt que
+> désormais l'outil `QGIS-LTR-Updater` (ci-joint / lien : ...) plutôt que
 > de télécharger l'installeur manuellement.
 >
-> Double-cliquez dessus : une fenêtre s'ouvre, vous indique si une nouvelle
+> Extrayez entièrement le zip dans un dossier (clic droit -> Extraire tout),
+> puis double-cliquez sur `QGIS-LTR-Updater.exe` à l'intérieur : une fenêtre
+> s'ouvre, vous indique si une nouvelle
 > version LTR est disponible, et propose de l'installer d'un clic. Les
 > paramètres d'installation sont déjà validés par l'équipe — il n'y a rien
 > à choisir. La version précédente reste disponible en parallèle, et les
@@ -157,3 +170,8 @@ graphique ne peuvent être testées que sur un poste Windows.
   d'installation isolée par version.
 - Nécessite un accès réseau sortant vers `download.osgeo.org` (ou un des
   mirrors listés dans `config.py`).
+- Si l'application ne s'ouvre vraiment pas (pas même une boîte d'erreur),
+  la cause la plus probable est le dossier extrait de façon incomplète
+  (exe lancé depuis l'intérieur du zip sans l'avoir extrait) ou WebView2
+  absent du poste. Une exception au démarrage affiche désormais une boîte
+  de dialogue Windows avec le détail plutôt que de disparaître en silence.

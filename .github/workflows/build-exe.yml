@@ -14,9 +14,13 @@ jobs:
         with:
           python-version: "3.12"
       - run: pip install -r requirements-dev.txt
+      # --onedir (pas --onefile) : un exécutable "onefile" se ré-extrait dans
+      # un dossier temporaire à chaque lancement (démarrage lent, plus souvent
+      # bloqué par l'antivirus) et a des soucis de fiabilité documentés avec
+      # WebView2. --onedir démarre directement depuis le disque.
       - run: >
           pyinstaller
-          --onefile
+          --onedir
           --windowed
           --name QGIS-LTR-Updater
           --add-data "qgis_ltr_updater/assets;assets"
@@ -24,5 +28,5 @@ jobs:
       - uses: actions/upload-artifact@v4
         with:
           name: QGIS-LTR-Updater-windows
-          path: dist/QGIS-LTR-Updater.exe
+          path: dist/QGIS-LTR-Updater/
           retention-days: 30

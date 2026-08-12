@@ -24,6 +24,23 @@ def _attach_console() -> None:
         sys.stdin = open("CONIN$", "r", encoding="utf-8")
 
 
+def _show_fatal_error(message: str) -> None:
+    """Dernier filet de sécurité pour l'exe --windowed : sans console, une
+    exception non attrapée ne montre RIEN à l'utilisateur (la fenêtre ne
+    s'ouvre juste jamais). On affiche donc une boîte de dialogue Windows
+    native avec le détail, pour transformer un "ça ne marche pas" muet en
+    un message exploitable.
+    """
+    if sys.platform == "win32":
+        import ctypes
+
+        ctypes.windll.user32.MessageBoxW(
+            0, message, "QGIS LTR Updater - Erreur au démarrage", 0x10
+        )
+    else:
+        print(message, file=sys.stderr)
+
+
 def main() -> int:
     if "--cli" in sys.argv:
         _attach_console()
@@ -32,9 +49,18 @@ def main() -> int:
         argv = [arg for arg in sys.argv[1:] if arg != "--cli"]
         return cli_main(argv)
 
-    from qgis_ltr_updater.gui import run_gui
+    try:
+        from qgis_ltr_updater.gui import run_gui
 
-    run_gui()
+        run_gui()
+    except Exception as exc:  # noqa: BLE001 - filet de sécurité volontairement large
+        import traceback
+
+        _show_fatal_error(
+            "L'application n'a pas pu démarrer.\n\n"
+            f"{exc}\n\n{traceback.format_exc()}"
+        )
+        return 1
     return 0
 
 
