@@ -41,8 +41,13 @@ def download_file(urls, dest: Path, timeout=30) -> Path:
     )
 
 
-def build_install_args(setup_exe: Path, root_dir: Path, version_label: str) -> list:
-    """Construit la ligne de commande d'installation silencieuse d'osgeo4w-setup.exe."""
+def build_install_args(setup_exe: Path, root_dir: Path, version_label: str, sites=None) -> list:
+    """Construit la ligne de commande d'installation silencieuse d'osgeo4w-setup.exe.
+
+    `sites` permet de cibler un dépôt précis (ex. un snapshot daté d'OSGeo4W
+    pour installer une version qui n'est plus la version "courante") ; par
+    défaut, les mirrors habituels de `config.SITE_MIRRORS`.
+    """
     args = [
         str(setup_exe),
         "--quiet-mode",
@@ -53,7 +58,7 @@ def build_install_args(setup_exe: Path, root_dir: Path, version_label: str) -> l
         "--packages", config.PACKAGE_NAME,
         "--menu-name", f"QGIS LTR {version_label}",
     ]
-    for site in config.SITE_MIRRORS:
+    for site in (sites if sites is not None else config.SITE_MIRRORS):
         args += ["--site", site]
     if config.AUTOACCEPT_LICENSES:
         args.append("--autoaccept")
@@ -64,8 +69,8 @@ def build_install_args(setup_exe: Path, root_dir: Path, version_label: str) -> l
     return args
 
 
-def run_install(setup_exe: Path, root_dir: Path, version_label: str) -> subprocess.CompletedProcess:
-    args = build_install_args(setup_exe, root_dir, version_label)
+def run_install(setup_exe: Path, root_dir: Path, version_label: str, sites=None) -> subprocess.CompletedProcess:
+    args = build_install_args(setup_exe, root_dir, version_label, sites=sites)
     return subprocess.run(args, capture_output=True, text=True, check=False)
 
 

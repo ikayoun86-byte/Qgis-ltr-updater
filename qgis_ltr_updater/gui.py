@@ -277,7 +277,13 @@ class App:
             self.pill.set_state(WARN, WARN_BG, "Mise à jour disponible")
             self.install_button.set_text(f"Installer {plan.latest}")
             self.install_button.set_enabled(True)
-            if plan.a_retirer:
+            if plan.bootstrap:
+                self.note_label.configure(
+                    text=f"Aucune installation existante : {plan.bootstrap['version']} (n-1) sera aussi "
+                    "installée en plus de la dernière version, pour démarrer directement avec les deux."
+                )
+                self.note_label.pack(anchor="w", pady=(12, 0))
+            elif plan.a_retirer:
                 noms = ", ".join(r.version for r in plan.a_retirer)
                 self.note_label.configure(
                     text=f"{noms} sera retirée après l'installation, pour ne garder que la version actuelle et la nouvelle."
@@ -335,7 +341,7 @@ class App:
             return
 
         try:
-            record = core.perform_install(plan, log=self._log)
+            record = core.perform_install_with_bootstrap(plan, log=self._log)
         except core.InstallError as exc:
             self.queue.put(("install_error", str(exc)))
             return

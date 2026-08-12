@@ -54,6 +54,26 @@ SITE_MIRRORS = [
     "https://www.norbit.de/osgeo4w/v2",
 ]
 
+# --- Bootstrap n-1 sur machine vierge ----------------------------------------
+
+# Sur une machine sans aucune installation connue, l'outil installe n-1 EN
+# PLUS de n dès le premier lancement (au lieu de se contenter de n et
+# d'attendre le cycle suivant pour avoir un n-1). Pour ça il faut pouvoir
+# installer une version LTR précise qui n'est plus la version "courante"
+# d'OSGeo4W — ce que l'API GitHub (source des numéros de version) et les
+# snapshots datés d'OSGeo4W (source des paquets historiques) permettent
+# ensemble. C'est la partie la moins éprouvée de l'outil : si la résolution
+# échoue, l'outil installe silencieusement n seul plutôt que d'échouer.
+GITHUB_RELEASES_URL = "https://api.github.com/repos/qgis/QGIS/releases"
+
+# Les versions LTR de QGIS sortent tous les 6 versions mineures à partir de
+# la 3.28 (3.28, 3.34, 3.40, 3.46, ...). Même règle que le script PowerShell
+# de référence ayant servi à valider l'URL de l'installeur.
+LTR_MINOR_BASE = 28
+LTR_MINOR_STEP = 6
+
+SNAPSHOTS_INDEX_URL = "https://download.osgeo.org/osgeo4w/v2/snapshots/"
+
 # --- Emplacement d'installation ---------------------------------------------
 
 # Chaque version LTR est installée dans sa PROPRE arborescence, nommée avec

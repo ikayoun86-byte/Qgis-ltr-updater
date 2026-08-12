@@ -10,7 +10,9 @@ Application Windows (fenêtre native, double-clic pour lancer) qui :
    est installée avec succès, l'outil désinstalle automatiquement ce qui est
    plus ancien que n-1 (n-2, n-3, ...) — jamais d'écrasement pendant
    l'installation, et pas d'accumulation de vieilles versions sur les postes
-   au fil du temps.
+   au fil du temps. Sur une machine vierge (rien d'installé), il installe
+   **directement n-1 puis n** au lieu de se contenter de n, pour démarrer
+   d'emblée avec les deux (voir "Bootstrap n-1" ci-dessous).
 
 ## Interface
 
@@ -44,6 +46,31 @@ moteur de navigateur) à empaqueter ni à trouver sur le poste au démarrage.
   installation QGIS qui n'aurait pas été faite par cet outil.
 - Ce comportement peut être désactivé (rétention en mode "signalement
   seulement") via `AUTO_REMOVE_OLDER_VERSIONS = False` dans `config.py`.
+
+### Bootstrap n-1 (machine vierge)
+
+setup.ini d'OSGeo4W ne connaît que la version LTR *courante* : pour installer
+n-1 dès le premier lancement, l'outil croise deux sources :
+
+1. les [tags de releases GitHub de QGIS](https://api.github.com/repos/qgis/QGIS/releases)
+   pour savoir quelle version est n-1 et quand elle a été publiée (même
+   méthode qu'un script de référence testé en conditions réelles par
+   l'équipe) ;
+2. les [snapshots datés d'OSGeo4W](https://download.osgeo.org/osgeo4w/v2/snapshots/)
+   pour retrouver une adresse où cette version précise (et non la version
+   courante) est encore installable.
+
+> ⚠️ **C'est la partie la moins éprouvée de l'outil.** Le reste du dépôt a
+> été validé par des tests réels sur un poste Windows ; ce mécanisme-là
+> repose sur le format des pages de snapshots d'OSGeo4W, qui n'a pas pu être
+> vérifié en conditions réelles au moment d'écrire ceci. Il est conçu pour
+> échouer proprement : si la résolution de n-1 ne trouve rien (page
+> introuvable, format différent de celui attendu, etc.), l'outil installe
+> silencieusement **n seul** plutôt que de planter — vous vous retrouvez
+> alors dans le cas normal (n-1 se remplira au cycle suivant). Si ça arrive,
+> le journal ne mentionnera pas d'installation de n-1 ; `_SNAPSHOT_DIR_RE`
+> et `find_snapshot_for_version` dans `version_check.py` sont l'endroit à
+> ajuster si le format des pages de snapshots diffère de ce qui est attendu.
 
 ## Utilisation (équipe)
 

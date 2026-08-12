@@ -72,6 +72,12 @@ def main(argv=None) -> int:
         noms = ", ".join(r.version for r in plan.a_retirer)
         retrait_msg = f" (la/les version(s) {noms} seront désinstallée(s) pour ne garder que {config.KEEP_VERSIONS} version(s))"
 
+    if plan.bootstrap:
+        print(
+            f"Aucune installation existante : {plan.bootstrap['version']} (n-1) sera aussi "
+            "installée en plus de la dernière version, pour démarrer directement avec les deux."
+        )
+
     if not args.yes:
         reponse = input(
             f"Installer la version {plan.latest} maintenant, "
@@ -95,7 +101,7 @@ def main(argv=None) -> int:
         return 1
 
     try:
-        core.perform_install(plan, log=print)
+        core.perform_install_with_bootstrap(plan, log=print)
     except core.InstallError as exc:
         print(f"Erreur : {exc}")
         return 1
