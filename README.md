@@ -24,9 +24,9 @@ Une seule fenêtre, pensée pour être comprise en un coup d'œil :
 - un journal qui ne s'ouvre que pendant une installation, pour voir ce qui
   se passe sans avoir à lire un terminal.
 
-L'interface respecte le thème clair/sombre de Windows et les animations
-sont désactivées automatiquement si "Réduire les animations" est activé au
-niveau du système.
+L'interface est en **tkinter**, inclus dans toute installation Python
+standard : aucune dépendance native supplémentaire (pas de WebView2, pas de
+moteur de navigateur) à empaqueter ni à trouver sur le poste au démarrage.
 
 ## Comment ça marche
 
@@ -102,8 +102,7 @@ Le résultat est un **dossier** (`dist\QGIS-LTR-Updater\`, contenant
 `dist\QGIS-LTR-Updater-windows.zip` prêt à diffuser. C'est un choix
 délibéré : le mode `--onefile` de PyInstaller doit se ré-extraire dans un
 dossier temporaire à *chaque* lancement (démarrage lent, plus souvent
-signalé par l'antivirus) et a des soucis de fiabilité documentés avec
-WebView2 (DLL introuvable). Le mode `--onedir` utilisé ici démarre
+signalé par l'antivirus). Le mode `--onedir` utilisé ici démarre
 directement depuis le disque, sans étape d'extraction.
 
 > ⚠️ Un exécutable PyInstaller non signé peut déclencher un avertissement
@@ -113,15 +112,6 @@ directement depuis le disque, sans étape d'extraction.
 > diffuser pour éviter cet avertissement. Sinon, prévenez l'équipe dans
 > l'email (modèle ci-dessous) qu'il faut cliquer sur "Informations
 > complémentaires" puis "Exécuter quand même".
->
-> L'interface graphique s'appuie sur le moteur **WebView2** de Microsoft
-> (`webview.start(gui="edgechromium")`, forcé explicitement pour éviter que
-> pywebview ne retombe silencieusement sur un très vieux moteur qui plante
-> de façon incompréhensible). WebView2 est préinstallé sur Windows 11 et sur
-> les Windows 10 à jour. S'il manque, l'application affiche une boîte de
-> dialogue avec le lien du
-> [WebView2 Runtime](https://developer.microsoft.com/microsoft-edge/webview2/)
-> (installateur officiel Microsoft, quelques Mo) au lieu de ne rien afficher.
 
 ## Tests
 
@@ -131,8 +121,8 @@ pytest
 ```
 
 Les tests couvrent le parsing de version, la logique de rétention et le
-plan d'installation (entièrement multiplateforme, sans dépendance à
-pywebview). L'exécution réelle de l'installeur OSGeo4W et de l'interface
+plan d'installation (entièrement multiplateforme, sans dépendance
+graphique). L'exécution réelle de l'installeur OSGeo4W et de l'interface
 graphique ne peuvent être testées que sur un poste Windows.
 
 ## Modèle d'e-mail pour l'équipe
@@ -164,7 +154,7 @@ graphique ne peuvent être testées que sur un poste Windows.
 ## Limites connues
 
 - Windows uniquement (repose sur l'installeur réseau OSGeo4W et son option
-  `--root` par version, ainsi que sur WebView2 pour l'interface).
+  `--root` par version).
 - La désinstallation automatique des versions trop anciennes (n-2 et plus)
   supprime directement le dossier d'installation et son groupe de raccourcis
   — OSGeo4W n'expose pas d'entrée fiable dans "Ajouter/Supprimer des
@@ -174,6 +164,6 @@ graphique ne peuvent être testées que sur un poste Windows.
   mirrors listés dans `config.py`).
 - Si l'application ne s'ouvre vraiment pas (pas même une boîte d'erreur),
   la cause la plus probable est le dossier extrait de façon incomplète
-  (exe lancé depuis l'intérieur du zip sans l'avoir extrait) ou WebView2
-  absent du poste. Une exception au démarrage affiche désormais une boîte
-  de dialogue Windows avec le détail plutôt que de disparaître en silence.
+  (exe lancé depuis l'intérieur du zip sans l'avoir extrait). Une exception
+  au démarrage affiche désormais une boîte de dialogue Windows avec le
+  détail plutôt que de disparaître en silence.

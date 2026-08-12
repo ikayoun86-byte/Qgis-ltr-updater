@@ -9,8 +9,9 @@
 #
 # Construit en mode --onedir (dossier), pas --onefile : un .exe "onefile" doit
 # se ré-extraire dans un dossier temporaire à CHAQUE lancement (démarrage
-# lent, plus souvent bloqué par l'antivirus) et a des soucis de fiabilité
-# documentés avec WebView2. --onedir démarre directement depuis le disque.
+# lent, plus souvent bloqué par l'antivirus). --onedir démarre directement
+# depuis le disque. L'interface est en tkinter (inclus dans Python standard,
+# aucune dépendance native supplémentaire à empaqueter).
 
 $ErrorActionPreference = "Stop"
 
@@ -21,10 +22,6 @@ python -m venv .build-venv
     --onedir `
     --windowed `
     --name QGIS-LTR-Updater `
-    --add-data "qgis_ltr_updater/assets;assets" `
-    --exclude-module pythonnet `
-    --exclude-module clr_loader `
-    --exclude-module clr `
     main.py
 
 Compress-Archive -Path "dist\QGIS-LTR-Updater\*" -DestinationPath "dist\QGIS-LTR-Updater-windows.zip" -Force

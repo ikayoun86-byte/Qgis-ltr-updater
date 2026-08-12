@@ -16,17 +16,13 @@ jobs:
       - run: pip install -r requirements-dev.txt
       # --onedir (pas --onefile) : un exécutable "onefile" se ré-extrait dans
       # un dossier temporaire à chaque lancement (démarrage lent, plus souvent
-      # bloqué par l'antivirus) et a des soucis de fiabilité documentés avec
-      # WebView2. --onedir démarre directement depuis le disque.
+      # bloqué par l'antivirus). --onedir démarre directement depuis le
+      # disque. Interface en tkinter : aucune dépendance native à empaqueter.
       - run: >
           pyinstaller
           --onedir
           --windowed
           --name QGIS-LTR-Updater
-          --add-data "qgis_ltr_updater/assets;assets"
-          --exclude-module pythonnet
-          --exclude-module clr_loader
-          --exclude-module clr
           main.py
       - uses: actions/upload-artifact@v4
         with:
